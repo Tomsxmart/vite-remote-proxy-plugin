@@ -6,6 +6,8 @@ A lot of older React codebases are still bundling CSR bundles into proprietary b
 
 What this plugin tries to achieve is an development ecosystem where you do not have to run your server-side back-end locally to just be able to develop projects while still being able to pass data, render different views from server and let routing be handled by back-end as well.
 
+#### Plugin fully works with Vite's in-built HMR
+
 ## Example
 
 Plugin should always be provided as below vite core plugins.
