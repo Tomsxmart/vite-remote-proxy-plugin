@@ -1,15 +1,17 @@
 {
   "name": "vite-remote-proxy-plugin",
-  "version": "0.0.3",
+  "version": "0.1.1",
   "author": "Toms E.",
   "description": "A plugin for vite to proxy domain url's to local development",
-  "main": "src/index.js",
+  "main": "dist/esm/index.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc  --module es2015 --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs"
   },
   "repository": {
     "type": "git",

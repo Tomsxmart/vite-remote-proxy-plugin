@@ -1,3 +1,4 @@
+
 import { parse } from "node-html-parser";
 import chalk from 'chalk';
 
@@ -32,12 +33,17 @@ interface HeadersConfig {
 }
 
 
-export default function remoteProxyPlugin({ target, headers, bundles} : PluginConfig)  {
+export const remoteProxyPlugin = ({ target, headers, bundles} : PluginConfig) =>  {
   let config;
   return {
     name: "vite-remote-proxy-plugin", // Required, will show up in warnings and errors
     configResolved(resolvedConfig) {
       config = resolvedConfig;
+      const message =
+        chalk.gray(new Date().toLocaleTimeString()) +
+        chalk.bold.red(' [remote-proxy-plugin] ') +
+        chalk.bold.cyan('Running proxy: ' + target);
+        console.log(message);
     },
     configureServer({ middlewares }) {
       middlewares.use(async (req, res, next) => {
@@ -70,11 +76,7 @@ export default function remoteProxyPlugin({ target, headers, bundles} : PluginCo
         // Modify and remove appending scripts that are served from the server to prevent override
         modifyHTML({ parsedHtml, config, bundles });
 
-        const message =
-        chalk.gray(new Date().toLocaleTimeString()) +
-        chalk.bold.red(' [remote-proxy-plugin] ') +
-        chalk.bold.cyan('Running proxy: ' + target);
-        console.log(message);
+        
 
         // Sending response back to client
         res.setHeader("content-type", contentType);
@@ -124,3 +126,5 @@ const modifyHTML = ({ parsedHtml, config, bundles }) => {
     });
   });
 };
+
+export default remoteProxyPlugin;
