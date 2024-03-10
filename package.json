@@ -1,6 +1,6 @@
 {
   "name": "vite-remote-proxy-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Toms E.",
   "description": "A plugin for vite to proxy domain url's to local development",
   "main": "index.ts",
