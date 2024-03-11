@@ -1,6 +1,8 @@
 
-import { parse } from "node-html-parser";
+import { parse,HTMLElement } from "node-html-parser";
 import chalk from 'chalk';
+import { Express, Request, Response, NextFunction } from 'express';
+import { Plugin } from "vite";
 
 interface PluginConfig {
   /**
@@ -32,21 +34,35 @@ interface HeadersConfig {
     [key:string]:string
 }
 
+ interface ConfigType extends Plugin  {
+  server: {host?:string, port?:string}
+}
+
+type ModifyHTML = {
+  parsedHtml:HTMLElement,
+  config : ConfigType,
+  bundles: BundlesConfig[]
+} 
+
+
+const pluginName = "vite-remote-proxy-plugin"
 
 export const remoteProxyPlugin = ({ target, headers, bundles} : PluginConfig) =>  {
-  let config;
+  let config : ConfigType;
   return {
-    name: "vite-remote-proxy-plugin", // Required, will show up in warnings and errors
-    configResolved(resolvedConfig) {
-      config = resolvedConfig;
+    name: pluginName, // Required, will show up in warnings and errors
+    configResolved(resolvedConfig : ConfigType ) {
+      config = resolvedConfig ;
       const message =
         chalk.gray(new Date().toLocaleTimeString()) +
         chalk.bold.red(' [remote-proxy-plugin] ') +
         chalk.bold.cyan('Running proxy: ' + target);
         console.log(message);
     },
-    configureServer({ middlewares }) {
-      middlewares.use(async (req, res, next) => {
+  configureServer({middlewares}: {middlewares : Express}) {
+      console.log(typeof middlewares);
+      
+      middlewares.use(async (req : Request, res: Response, next : NextFunction) => {
         const ignoreUrls = [
           "/node_modules",
           "/src",
@@ -76,10 +92,8 @@ export const remoteProxyPlugin = ({ target, headers, bundles} : PluginConfig) =>
         // Modify and remove appending scripts that are served from the server to prevent override
         modifyHTML({ parsedHtml, config, bundles });
 
-        
-
         // Sending response back to client
-        res.setHeader("content-type", contentType);
+        res.setHeader("content-type", contentType!);
         res.end(parsedHtml.toString());
       });
     },
@@ -87,8 +101,8 @@ export const remoteProxyPlugin = ({ target, headers, bundles} : PluginConfig) =>
 }
 
 
-const modifyHTML = ({ parsedHtml, config, bundles }) => {
-  const { host, port } = config.server;
+const modifyHTML = ({ parsedHtml, config, bundles } : ModifyHTML) => {
+  const { host, port } = config.server ;
 
   //Injecting HMR functionality into head
   const headEl = parsedHtml.querySelector("head");
@@ -107,19 +121,19 @@ const modifyHTML = ({ parsedHtml, config, bundles }) => {
   //TODO: Remove related css files from the document to prevent style override in development 
 
   // Modify existing bundles to redirect to local uri's 
-  bundles.forEach((bundle) => {
+  bundles.forEach((bundle : {dataName:string, entryPoint : string}) => {
     const { dataName, entryPoint } = bundle;
     const elements = parsedHtml.querySelectorAll(`[data-name="${dataName}"]`);
 
-    elements.forEach((item) => {
+    elements.forEach((item : HTMLElement) => {
       // check if the provided file is imported by using href or src
       const source = item.getAttribute("href") !== undefined ? "href" : "src";
-      const bundleLoc = new URL(item.getAttribute(source));
+      const bundleLoc = new URL(item.getAttribute(source) || "");
 
       // possibly refactor this to deconstruct but keep URL properties?
-      bundleLoc.hostname = host;
+      bundleLoc.hostname = host || 'localhost';
       bundleLoc.pathname = entryPoint;
-      bundleLoc.port = port;
+      bundleLoc.port = port || '5173';
       bundleLoc.protocol = "http";
 
       item.setAttribute(source, bundleLoc.toString());

@@ -10,7 +10,7 @@ function App() {
           This is currently served locally, to see what domain serves instead, provide an empty array to bundles argument in config.
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        </p> 
       </p>
     </>
   )
