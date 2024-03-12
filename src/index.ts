@@ -60,7 +60,7 @@ export const remoteProxyPlugin = ({ target, headers, bundles} : PluginConfig) =>
         console.log(message);
     },
   configureServer({middlewares}: {middlewares : Express}) {
-      console.log(typeof middlewares);
+ 
       
       middlewares.use(async (req : Request, res: Response, next : NextFunction) => {
         const ignoreUrls = [
